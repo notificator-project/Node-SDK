@@ -1,10 +1,8 @@
-name: Publish Node.js package
+name: Publish to npm
 
 on:
-  push:
-    tags:
-      - "v*"
-  workflow_dispatch:
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -13,35 +11,53 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: npm
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
-      - run: npm ci
-      - run: npm run format:check
-      - run: npm test
-      - name: Verify release tag
-        if: github.event_name == 'push'
-        run: >-
-          node -e "const version = require('./package.json').version;
-          const tag = process.env.GITHUB_REF_NAME;
-          if (tag !== 'v' + version) {
-            throw new Error('Release tag ' + tag + ' does not match package version v' + version);
-          }"
+
+      - name: Verify release version
+        id: package
+        shell: bash
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          tag_version="${GITHUB_REF_NAME#v}"
+          if [[ "$package_version" != "$tag_version" ]]; then
+            echo "package.json version $package_version does not match release tag $GITHUB_REF_NAME"
+            exit 1
+          fi
+          echo "version=$package_version" >> "$GITHUB_OUTPUT"
+
       - name: Check npm registry
         id: registry
+        shell: bash
         run: |
-          package_spec=$(node -p "const p = require('./package.json'); p.name + '@' + p.version")
-          if npm view "$package_spec" version --json > /dev/null 2>&1; then
+          if npm view "@notificator-project/api@${{ steps.package.outputs.version }}" version --json >/dev/null 2>&1; then
             echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "$package_spec is already available; skipping publication."
+            echo "Version ${{ steps.package.outputs.version }} is already available on npm."
           else
             echo "published=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify package
+        run: npm test && npm run format:check
+
+      - name: Inspect package contents
+        run: npm pack --dry-run
+
       - name: Publish package
         if: steps.registry.outputs.published != 'true'
         run: npm publish --access public --provenance
+
+      - name: Confirm existing package
+        if: steps.registry.outputs.published == 'true'
+        run: echo "Skipping npm publish because this version is already public."
