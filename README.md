@@ -4,7 +4,7 @@ Send alerts from Node.js, serverless functions, workers, queues, and backend app
 
 The SDK connects to the hosted Notificator API. Notificator operates the delivery service and securely manages mobile push, account email, and connected-device delivery.
 
-Current release: [`0.1.0`](https://github.com/notificator-project/Node-SDK/releases/tag/v0.1.0), published as [`@notificator-project/api`](https://www.npmjs.com/package/@notificator-project/api).
+The current package is available from [npm](https://www.npmjs.com/package/@notificator-project/api), with release notes published on [GitHub](https://github.com/notificator-project/Node-SDK/releases/latest).
 
 ## Install
 
