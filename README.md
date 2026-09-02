@@ -30,7 +30,7 @@ await notificator.notify({
 });
 ```
 
-Use a `public_client` API key created in the Notificator mobile app. Keep it on the server and never include it in browser or mobile bundles.
+Use a `public_client` API key created in the [web dashboard (beta)](https://dashboard.notificator-project.com) or Notificator mobile app. Both use the same account; the dashboard also lets you read notifications and monitor devices. Keep it on the server and never include it in browser or mobile bundles.
 
 The SDK never contains or requests Notificator infrastructure credentials such as Expo, Supabase, email-provider, or MQTT service secrets.
 
@@ -69,4 +69,4 @@ npm pack --dry-run
 
 ## Security
 
-Only use the SDK in trusted server-side code. If an API key is exposed, revoke it in the Notificator mobile app and create a replacement.
+Only use the SDK in trusted server-side code. If an API key is exposed, revoke it in the web dashboard or Notificator mobile app and create a replacement.
